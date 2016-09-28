@@ -7,4 +7,4 @@ RUN pip install --upgrade pillow
 
 ADD src /opt/oversight
 
-CMD cd /opt/oversight && python oversight.py
+CMD cd /opt/oversight && python main.py

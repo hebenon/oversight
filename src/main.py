@@ -1,13 +1,13 @@
 __author__ = 'bcarson'
 
 import argparse
+import io
 import os
 import time
 
 import tensorflow as tf
 
 from PIL import Image
-from StringIO import StringIO
 
 from oversight.classifier import Classifier
 from oversight.imagesource import ImageSource
@@ -54,7 +54,7 @@ def get_image(image_input):
     image = Image.open(image_input)
     resized_image = image.resize((output_width, output_height))
 
-    output_buffer = StringIO()
+    output_buffer = io.BytesIO()
     resized_image.save(output_buffer, "jpeg")
 
     return output_buffer.getvalue()
@@ -81,7 +81,7 @@ def main(_):
 
             if source_image is not None:
                 image = get_image(source_image)
-                image_buffer = [image] + image_buffer[:args.image_buffer_length - 1]
+                image_buffer = [image] + image_buffer[:int(args.image_buffer_length) - 1]
 
                 # Get predictions
                 predictions = classifier.predict(session, image)
