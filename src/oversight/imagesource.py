@@ -1,12 +1,7 @@
 __author__ = 'bcarson'
 
 import urllib2, base64
-
-# Find the best implementation available on this platform
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
+import io
 
 class ImageSource(object):
 
@@ -25,7 +20,7 @@ class ImageSource(object):
             request.add_header("Authorization", "Basic %s" % self.authorisation)
 
         try:
-            return StringIO(urllib2.urlopen(request).read())
+            return io.BytesIO(urllib2.urlopen(request).read())
         except urllib2.HTTPError, e:
             print "HTTP Error:", e.code, request
         except urllib2.URLError, e:
