@@ -1,18 +1,28 @@
-__author__ = 'bcarson'
+#!/usr/bin/python
 
+__author__ = 'bcarson'
 # Simple script to resize raw images into standard format.
 
 import sys
 import os
+import argparse
 
 from PIL import Image
 
-output_width = 1000
-output_height = 565
+parser = argparse.ArgumentParser(description='resizer')
+parser.add_argument('--input_path', default='./labelled_images_raw')
+parser.add_argument('--output_path', default='./labelled_images')
+parser.add_argument('--output_width', default='1000')
+parser.add_argument('--output_height', default='565')
 
 if __name__ == "__main__":
-    input_path = sys.argv[1]
-    output_path = sys.argv[2]
+    args = parser.parse_args()
+
+    output_width = int(args.output_width)
+    output_height = int(args.output_height)
+
+    input_path = args.input_path
+    output_path = args.output_path
 
     for category in [path for path in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, path))]:
         output_category_path = os.path.join(output_path, category)

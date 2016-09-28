@@ -9,9 +9,9 @@ import tensorflow as tf
 
 from PIL import Image
 
-from oversight.classifier import Classifier
-from oversight.imagesource import ImageSource
-from oversight.smtp_notifier import SmtpNotifier
+from classifier import Classifier
+from image_source import ImageSource
+from smtp_notifier import SmtpNotifier
 
 
 # Size of images to work with
