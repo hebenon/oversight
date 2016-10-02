@@ -28,7 +28,7 @@ def validate_args():
     parser.add_argument('--image_buffer_length', default=os.environ.get('OVERSIGHT_IMAGE_BUFFER_LENGTH', 3), type=int)
     parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
     parser.add_argument('--smtp_host', default=os.environ.get('OVERSIGHT_SMTP_HOST', ''))
-    parser.add_argument('--triggers', default=os.environ.get('OVERSIGHT_TRIGGERS', '').split(','), nargs='*')
+    parser.add_argument('--triggers', default=os.environ.get('OVERSIGHT_TRIGGERS', '').split(' '), nargs='*')
     args = parser.parse_args()
 
     # Mandatory args
