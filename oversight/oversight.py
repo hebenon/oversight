@@ -18,60 +18,76 @@ from smtp_notifier import SmtpNotifier
 output_width = 1000
 output_height = 565
 
-# Trigger certainty levels
-triggers = {
-    #"nothing": 0.1,
-    "person": 0.85,
-    "car": 0.85
-}
-
 
 def validate_args():
     parser = argparse.ArgumentParser(description='oversight')
     parser.add_argument('--download_url', default=os.environ.get('OVERSIGHT_DOWNLOAD_URL', None))
     parser.add_argument('--download_username', default=os.environ.get('OVERSIGHT_DOWNLOAD_USERNAME', None))
     parser.add_argument('--download_password', default=os.environ.get('OVERSIGHT_DOWNLOAD_PASSWORD', None))
-    parser.add_argument('--model_directory', default=os.environ.get('OVERSIGHT_MODEL_DIRECTORY', None))
-    parser.add_argument('--image_buffer_length', default=os.environ.get('OVERSIGHT_IMAGE_BUFFER_LENGTH', None))
-    parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', None))
+    parser.add_argument('--model_directory', default=os.environ.get('OVERSIGHT_MODEL_DIRECTORY', '~/.oversight'))
+    parser.add_argument('--image_buffer_length', default=os.environ.get('OVERSIGHT_IMAGE_BUFFER_LENGTH', 3), type=int)
+    parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
+    parser.add_argument('--smtp_host', default=os.environ.get('OVERSIGHT_SMTP_HOST', ''))
+    parser.add_argument('--triggers', default=os.environ.get('OVERSIGHT_TRIGGERS', '').split(','), nargs='*')
     args = parser.parse_args()
 
     # Mandatory args
-    if not args.download_password:
+    if not args.download_url:
         exit(parser.print_usage())
-
-    # Args with defaults
-    if not args.image_buffer_length:
-        args.image_buffer_length = 3
-
-    if not args.model_directory:
-        args.model_directory = "~/.oversight"
 
     return args
 
 
 def get_image(image_input):
+    """
+    Given a raw image from an image source, resize it to a standard size. Doing this results in more consistent
+    results against the training set.
+
+    :param image_input: A buffer with the raw image data.
+    :return: Resized image data in jpeg format.
+    """
     image = Image.open(image_input)
     resized_image = image.resize((output_width, output_height))
 
     output_buffer = io.BytesIO()
-    resized_image.save(output_buffer, "jpeg")
+    resized_image.save(output_buffer, 'jpeg')
 
     return output_buffer.getvalue()
+
+
+def parse_triggers(trigger_args):
+    """
+    Parses a list of trigger:threshold pairs to return a dictionary of triggers.
+    I've used a function instead of a list slice for the opportunity to apply validation.
+
+    :param trigger_args: List of trigger:threshold pairs.
+    :return: Dictionary of trigger -> threshold.
+    """
+    triggers = {}
+
+    for trigger_pair in trigger_args:
+        (trigger, threshold) = trigger_pair.split(':')
+        triggers[trigger] = threshold
+
+    return triggers
 
 
 def main(_):
     args = validate_args()
 
-    smtp_recipients = args.smtp_recipients.split(",")
+    smtp_recipients = args.smtp_recipients.split(',')
     image_buffer = []
 
-    print("Loading classifier...")
+    # Parse any triggers.
+    triggers = parse_triggers(args.triggers)
+    print('Triggers: ' + str(triggers))
+
+    print('Loading classifier...')
     classifier = Classifier(args.model_directory)
 
-    print("Creating image source...")
+    print('Creating image source...')
     image_source = ImageSource(args.download_url, args.download_username, args.download_password)
-    smtp_notifier = SmtpNotifier("Oversight <noreply@oversight.io>", "smtp.bigpond.com")
+    smtp_notifier = SmtpNotifier('Oversight <noreply@oversight.io>', args.smtp_host)
 
     with tf.Session() as session:
 
@@ -88,8 +104,8 @@ def main(_):
 
                 # Check for a result
                 for result in predictions:
-                    print("%s: %f" % result)
-                print("")
+                    print('%s: %f' % result)
+                print('')
 
                 head_prediction = predictions[0]
                 if head_prediction[0] in triggers and head_prediction[1] >= triggers[head_prediction[0]]:
@@ -97,6 +113,6 @@ def main(_):
 
             time.sleep(2)
 
-if __name__ == "__main__":
-    print("Initialising Tensorflow...")
+if __name__ == '__main__':
+    print('Initialising Tensorflow...')
     tf.app.run()

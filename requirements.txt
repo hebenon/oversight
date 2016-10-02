@@ -1,1 +1,2 @@
 pillow=3.2.0
+tensorflow=0.10.0
