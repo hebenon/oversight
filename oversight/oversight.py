@@ -38,7 +38,7 @@ def validate_args():
     return args
 
 
-def get_image(image_input):
+def get_resized_image(image_input):
     """
     Given a raw image from an image source, resize it to a standard size. Doing this results in more consistent
     results against the training set.
@@ -80,6 +80,7 @@ def main(_):
 
     # Parse any triggers.
     triggers = parse_triggers(args.triggers)
+    active_triggers = set()
     print('Triggers: ' + str(triggers))
 
     print('Loading classifier...')
@@ -96,20 +97,26 @@ def main(_):
             source_image = image_source.get_image()
 
             if source_image is not None:
-                image = get_image(source_image)
+                image = get_resized_image(source_image)
                 image_buffer = [image] + image_buffer[:int(args.image_buffer_length) - 1]
 
                 # Get predictions
                 predictions = classifier.predict(session, image)
 
                 # Check for a result
-                for result in predictions:
-                    print('%s: %f' % result)
-                print('')
+                for (prediction, probability) in predictions:
+                    print('%s: %f' % (prediction, probability))
 
-                head_prediction = predictions[0]
-                if head_prediction[0] in triggers and head_prediction[1] >= triggers[head_prediction[0]]:
-                    smtp_notifier.send_notification(head_prediction[0], image_buffer, smtp_recipients)
+                    # The graph uses softmax in the final layer, so it's *unlikely* that this will be useful.
+                    # That being said, it's possible to configure triggers with low thresholds.
+                    if prediction in triggers and probability >= triggers[prediction]\
+                            and prediction not in active_triggers:
+                        active_triggers.add(prediction)
+                        smtp_notifier.send_notification(prediction, image_buffer, smtp_recipients)
+                    else:
+                        active_triggers.discard(prediction)  # Remove from active triggers (if it exists)
+
+                print('')
 
             time.sleep(2)
 
