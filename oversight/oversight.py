@@ -67,7 +67,7 @@ def parse_triggers(trigger_args):
 
     for trigger_pair in trigger_args:
         (trigger, threshold) = trigger_pair.split(':')
-        triggers[trigger] = threshold
+        triggers[trigger] = float(threshold)
 
     return triggers
 
