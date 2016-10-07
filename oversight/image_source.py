@@ -2,6 +2,10 @@ __author__ = 'bcarson'
 
 import requests
 import io
+import logging
+
+logger = logging.getLogger('root')
+
 
 class ImageSource(object):
 
@@ -21,8 +25,8 @@ class ImageSource(object):
                 return io.BytesIO(request.content)
 
         except requests.ConnectionError, e:
-            print "Connection Error:", e, request
+            logger.error("Connection Error:", e, request)
         except requests.HTTPError, e:
-            print "HTTP Error:", e, request
+            logger.error("HTTP Error:", e, request)
 
         return None

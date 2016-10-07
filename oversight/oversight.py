@@ -4,6 +4,8 @@ import argparse
 import io
 import os
 import time
+import logging
+import logging.config
 
 import tensorflow as tf
 
@@ -13,6 +15,9 @@ from classifier import Classifier
 from image_source import ImageSource
 from smtp_notifier import SmtpNotifier
 
+from logging_config import LOGGING_CONFIG
+
+logger = logging.getLogger('root')
 
 # Size of images to work with
 output_width = 1000
@@ -29,6 +34,7 @@ def validate_args():
     parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
     parser.add_argument('--smtp_host', default=os.environ.get('OVERSIGHT_SMTP_HOST', ''))
     parser.add_argument('--triggers', default=os.environ.get('OVERSIGHT_TRIGGERS', '').split(' '), nargs='*')
+    parser.add_argument('--log_level', default=os.environ.get('OVERSIGHT_LOG_LEVEL', 'INFO'))
     args = parser.parse_args()
 
     # Mandatory args
@@ -75,18 +81,22 @@ def parse_triggers(trigger_args):
 def main(_):
     args = validate_args()
 
+    # Configure logging
+    LOGGING_CONFIG["loggers"]["root"]["level"] = args.log_level
+    logging.config.dictConfig(LOGGING_CONFIG)
+
     smtp_recipients = args.smtp_recipients.split(',')
     image_buffer = []
 
     # Parse any triggers.
     triggers = parse_triggers(args.triggers)
     active_triggers = set()
-    print('Triggers: ' + str(triggers))
+    logger.info('Triggers: ' + str(triggers))
 
-    print('Loading classifier...')
+    logger.info('Loading classifier...')
     classifier = Classifier(args.model_directory)
 
-    print('Creating image source...')
+    logger.info('Creating image source...')
     image_source = ImageSource(args.download_url, args.download_username, args.download_password)
     smtp_notifier = SmtpNotifier('Oversight <noreply@oversight.io>', args.smtp_host)
 
@@ -105,21 +115,25 @@ def main(_):
 
                 # Check for a result
                 for (prediction, probability) in predictions:
-                    print('%s: %f' % (prediction, probability))
+                    logger.debug("prediction %s: %f", prediction, probability)
 
                     # The graph uses softmax in the final layer, so it's *unlikely* that this will be useful.
-                    # That being said, it's possible to configure triggers with low thresholds.
-                    if prediction in triggers and probability >= triggers[prediction]\
-                            and prediction not in active_triggers:
-                        active_triggers.add(prediction)
-                        smtp_notifier.send_notification(prediction, image_buffer, smtp_recipients)
+                    # That being said, it's possible to configure multiple triggers with low thresholds.
+                    if prediction in triggers and probability >= triggers[prediction]:
+                        # Prevent alarm storms by not acting on active triggers
+                        if prediction not in active_triggers:
+                            logger.warning("Trigger event active: %s %f", prediction, probability)
+                            active_triggers.add(prediction)
+                            smtp_notifier.send_notification(prediction, image_buffer, smtp_recipients)
                     else:
-                        active_triggers.discard(prediction)  # Remove from active triggers (if it exists)
+                        # Log any clearing alarms
+                        if prediction in active_triggers:
+                            logger.warning("Trigger event ended: %s %f", prediction, probability)
 
-                print('')
+                        active_triggers.discard(prediction)  # Remove from active triggers (if it exists)
 
             time.sleep(2)
 
 if __name__ == '__main__':
-    print('Initialising Tensorflow...')
+    logger.info('Initialising Tensorflow...')
     tf.app.run()
