@@ -25,6 +25,13 @@ output_height = 565
 
 
 def validate_args():
+    """
+    Validate the provided arguments and return a parsed object.
+    Because we use os.environ to provide the default value for unprovided arguments,
+    we have to manually check for mandatory arguments.
+
+    :return: parsed ArgumentParser object
+    """
     parser = argparse.ArgumentParser(description='oversight')
     parser.add_argument('--download_url', default=os.environ.get('OVERSIGHT_DOWNLOAD_URL', None))
     parser.add_argument('--download_username', default=os.environ.get('OVERSIGHT_DOWNLOAD_USERNAME', None))
