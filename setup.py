@@ -11,8 +11,8 @@ config = {
     'url': 'https://github.com/hebenon/oversight',
     'download_url': 'https://github.com/hebenon/oversight',
     'author_email': 'ben.carson@bigpond.com',
-    'version': '0.1',
-    'install_requires': ['nose', 'pillow', 'tensorflow'],
+    'version': '0.2',
+    'install_requires': ['blinker', 'nose', 'pillow', 'requests', 'tensorflow'],
     'packages': ['oversight'],
     'scripts': [],
     'name': 'oversight'
