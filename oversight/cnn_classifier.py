@@ -17,6 +17,8 @@ __author__ = 'bcarson'
 import tensorflow as tf
 import os
 
+from signals import image, image_analysis
+
 
 class CNNClassifier(object):
     """
@@ -24,7 +26,9 @@ class CNNClassifier(object):
     The CNNClassifier requires a graph that has been pre-trained with labels of the expected events.
     """
 
-    def __init__(self, model_directory):
+    def __init__(self, model_directory, session):
+        self.session = session
+
         graph_file = os.path.expanduser(os.path.join(model_directory, "retrained_graph.pb"))
         label_file = os.path.expanduser(os.path.join(model_directory, "retrained_labels.txt"))
 
@@ -35,11 +39,15 @@ class CNNClassifier(object):
             graph_def.ParseFromString(f.read())
             _ = tf.import_graph_def(graph_def, name='')
 
-    def predict(self, sess, image_data):
-        # Feed the image_data as input to the graph and get first prediction
-        softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
+        image.connect(self.predict)
 
-        predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
+    def predict(self, sender, **data):
+        image_data = data['image']
+
+        # Feed the image_data as input to the graph and get first prediction
+        softmax_tensor = self.session.graph.get_tensor_by_name('final_result:0')
+
+        predictions = self.session.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
 
         # Sort to show labels of first prediction in order of confidence
         top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
@@ -49,4 +57,5 @@ class CNNClassifier(object):
         for node_id in top_k:
             results += [(self.labels[node_id], predictions[0][node_id])]
 
-        return results
+        # Emit analysis results
+        image_analysis.send(self, timestamp=data['timestamp'], image=image_data, predictions=results)

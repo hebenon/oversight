@@ -17,6 +17,12 @@ __author__ = 'bcarson'
 import requests
 import io
 import logging
+import time
+
+from PIL import Image
+from threading import Timer
+
+from signals import image
 
 logger = logging.getLogger('root')
 
@@ -27,7 +33,7 @@ class ImageSource(object):
     It periodically connects to a URL and downloads an image to generate each event.
     """
 
-    def __init__(self, download_url, username, password):
+    def __init__(self, download_url, username=None, password=None, download_frequency=2.0, output_width=1000, output_height=565):
         self.download_url = download_url
 
         if username is not None:
@@ -35,16 +41,46 @@ class ImageSource(object):
         else:
             self.authorisation = None
 
+        # Size of images to work with
+        self.output_width = output_width
+        self.output_height = output_height
+
+        self.download_frequency = download_frequency
+
+        Timer(self.download_frequency, self.get_image).start()
+
     def get_image(self):
+        downloaded_image = None
+
         try:
             request = requests.get(self.download_url, auth=self.authorisation)
 
             if request.status_code is 200:
-                return io.BytesIO(request.content)
+                downloaded_image = io.BytesIO(request.content)
 
         except requests.ConnectionError, e:
-            logger.error("Connection Error:", e, request)
+            logger.error("Connection Error:", e)
         except requests.HTTPError, e:
-            logger.error("HTTP Error:", e, request)
+            logger.error("HTTP Error:", e)
 
-        return None
+        if downloaded_image is not None:
+            resized_image = self.get_resized_image(downloaded_image)
+            image.send(self, timestamp=time.gmtime(), image=resized_image)
+
+        Timer(self.download_frequency, self.get_image).start()
+
+    def get_resized_image(self, image_input):
+        """
+        Given a raw image from an image source, resize it to a standard size. Doing this results in more consistent
+        results against the training set.
+
+        :param image_input: A buffer with the raw image data.
+        :return: Resized image data in jpeg format.
+        """
+        image = Image.open(image_input)
+        resized_image = image.resize((self.output_width, self.output_height))
+
+        output_buffer = io.BytesIO()
+        resized_image.save(output_buffer, 'jpeg')
+
+        return output_buffer.getvalue()

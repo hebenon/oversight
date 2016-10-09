@@ -19,6 +19,8 @@ import smtplib
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 
+from signals import trigger_event, image_buffer
+
 COMMASPACE = ', '
 
 
@@ -26,20 +28,27 @@ class SmtpNotifier(object):
     """
     A notification sink that sends notifications via smtp.
     """
-    def __init__(self, from_address, smtp_server, username=None, password=None):
+    def __init__(self, from_address, recipients, smtp_server, username=None, password=None):
         self.smtp_server = smtp_server
         self.username = username
         self.password = password
         self.from_address = from_address
+        self.recipients = recipients
 
-    def send_notification(self, event, images, recipients):
+        trigger_event.connect(self.handle_trigger_event)
+
+    def handle_trigger_event(self, sender, **data):
+        # Retrieve the image buffer, and add the event image, if not there.
+        images = self.get_image_buffer()
+        images.add(data['image'])
+
         # Create the container (outer) email message.
         msg = MIMEMultipart()
-        msg['Subject'] = 'Event: %s' % event
+        msg['Subject'] = 'Event: %s' % data['prediction']
 
         # Set addresses
         msg['From'] = self.from_address
-        msg['To'] = COMMASPACE.join(recipients)
+        msg['To'] = COMMASPACE.join(self.recipients)
         msg.preamble = msg['Subject']
 
         for image in images:
@@ -49,6 +58,13 @@ class SmtpNotifier(object):
 
         # Send the email via our own SMTP server.
         s = smtplib.SMTP_SSL(self.smtp_server)
-        s.sendmail(self.from_address, recipients, msg.as_string())
+        s.sendmail(self.from_address, self.recipients, msg.as_string())
         s.quit()
 
+    def get_image_buffer(self):
+        image_set = set()
+        for (receiver, return_value) in image_buffer.send(self):
+            for image in return_value:
+                image_set.add(image)
+
+        return image_set
