@@ -40,7 +40,10 @@ class SmtpNotifier(object):
     def handle_trigger_event(self, sender, **data):
         # Retrieve the image buffer, and add the event image, if not there.
         images = self.get_image_buffer()
-        images.add(data['image'])
+        event_image = data['image']
+
+        if event_image not in images:
+            images = [event_image] + images
 
         # Create the container (outer) email message.
         msg = MIMEMultipart()
@@ -62,9 +65,8 @@ class SmtpNotifier(object):
         s.quit()
 
     def get_image_buffer(self):
-        image_set = set()
+        image_set = []
         for (receiver, return_value) in image_buffer.send(self):
-            for image in return_value:
-                image_set.add(image)
+            image_set.extend(return_value)
 
         return image_set

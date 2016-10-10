@@ -17,10 +17,11 @@ __author__ = 'bcarson'
 import requests
 import io
 import logging
-import time
+
+from datetime import datetime
+from threading import Timer
 
 from PIL import Image
-from threading import Timer
 
 from signals import image
 
@@ -65,7 +66,7 @@ class ImageSource(object):
 
         if downloaded_image is not None:
             resized_image = self.get_resized_image(downloaded_image)
-            image.send(self, timestamp=time.gmtime(), image=resized_image)
+            image.send(self, timestamp=datetime.utcnow(), image=resized_image)
 
         Timer(self.download_frequency, self.get_image).start()
 
