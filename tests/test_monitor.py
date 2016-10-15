@@ -1,3 +1,17 @@
+# Copyright 2016 Ben Carson. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
 __author__ = 'bcarson'
 
 from datetime import datetime, timedelta
@@ -10,6 +24,7 @@ from oversight.monitor import Monitor
 
 from test_utils import load_image
 
+
 def teardown():
     # Disconnect any triggers
     for receiver in image_analysis.receivers_for(ANY):
@@ -20,7 +35,7 @@ def teardown():
 
 @with_setup(teardown=teardown)
 def test_generate_event_if_over_threshold():
-    monitor = Monitor({'test_event': 0.5})
+    monitor = Monitor(triggers={'test_event': 0.5})
 
     # Set up test conditions
     now = datetime.utcnow()
@@ -42,7 +57,7 @@ def test_generate_event_if_over_threshold():
 
 @with_setup(teardown=teardown)
 def test_no_event_if_under_threshold():
-    monitor = Monitor({'test_event': 0.5})
+    monitor = Monitor(triggers={'test_event': 0.5})
 
     # Set up test conditions
     now = datetime.utcnow()
@@ -61,7 +76,7 @@ def test_no_event_if_under_threshold():
 
 @with_setup(teardown=teardown)
 def test_no_event_if_already_active():
-    monitor = Monitor({'test_event': 0.5})
+    monitor = Monitor(triggers={'test_event': 0.5})
 
     # Set up test conditions
     now = datetime.utcnow()
@@ -87,7 +102,7 @@ def test_no_event_if_already_active():
 
 @with_setup(teardown=teardown)
 def test_generate_event_once_active_cleared():
-    monitor = Monitor({'test_event': 0.5})
+    monitor = Monitor(triggers={'test_event': 0.5})
 
     # Set up test conditions
     now = datetime.utcnow()
