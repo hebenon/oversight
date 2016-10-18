@@ -14,26 +14,10 @@
 # ==============================================================================
 __author__ = 'bcarson'
 
+from blinker import signal
 
-LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': True,
-    'formatters': {
-        'simple': {
-            'format': '%(asctime)s %(levelname)s -- %(message)s'
-        }
-    },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        }
-    },
-    'loggers': {
-        'root': {
-            'level': 'DEBUG',
-            'handlers': ['console']
-        }
-    }
-}
+image = signal('image')
+image_analysis = signal('image_analysis')
+image_buffer = signal('image_buffer')
+
+trigger_event = signal('trigger_event')
