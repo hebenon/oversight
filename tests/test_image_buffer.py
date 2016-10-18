@@ -68,7 +68,6 @@ def test_return_buffer_length_images():
     test_images = []
     for i in xrange(0, buffer_length + 1):
         test_image = load_image()
-        test_image.tag = "test_image_%d" % i
         test_images.append(test_image)
         image.send('test', timestamp=now + timedelta(seconds=i), image=test_image)
 
