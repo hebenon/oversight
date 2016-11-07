@@ -47,7 +47,7 @@ class SmtpNotifier(object):
 
         # Create the container (outer) email message.
         msg = MIMEMultipart()
-        msg['Subject'] = 'Event: %s' % data['prediction']
+        msg['Subject'] = 'Event: %s' % data['event']
 
         # Set addresses
         msg['From'] = self.from_address

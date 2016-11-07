@@ -50,7 +50,7 @@ def test_generate_event_if_over_threshold():
     image_analysis.send('test', timestamp=now, image=image, predictions=[('test_event', 0.99)])
 
     # Verify result
-    expected = dict(timestamp=now, image=image, prediction='test_event', probability=0.99)
+    expected = dict(timestamp=now, image=image, event='test_event')
 
     assert len(generated_events) is 1
     assert generated_events[0] == expected
@@ -95,7 +95,7 @@ def test_no_event_if_already_active():
     image_analysis.send('test', timestamp=now + timedelta(seconds=1), image=image, predictions=[('test_event', 0.99)])
 
     # Verify result
-    expected = dict(timestamp=now, image=image, prediction='test_event', probability=0.99)
+    expected = dict(timestamp=now, image=image, event='test_event')
 
     assert len(generated_events) is 1
     assert generated_events[0] == expected
@@ -124,8 +124,8 @@ def test_generate_event_once_active_cleared():
     image_analysis.send('test', timestamp=now + timedelta(seconds=2), image=image, predictions=[('test_event', 0.99)])
 
     # Verify result
-    expected_first = dict(timestamp=now, image=image, prediction='test_event', probability=0.99)
-    expected_second = dict(timestamp=now + timedelta(seconds=2), image=image, prediction='test_event', probability=0.99)
+    expected_first = dict(timestamp=now, image=image, event='test_event')
+    expected_second = dict(timestamp=now + timedelta(seconds=2), image=image, event='test_event')
 
     assert len(generated_events) is 2
     assert generated_events[0] == expected_first

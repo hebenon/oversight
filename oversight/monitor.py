@@ -14,27 +14,36 @@ class Monitor(object):
 
         image_analysis.connect(self.handle_image_analysis)
 
-    def handle_image_analysis(self, sender, **data):
-        # Get predictions
-        predictions = data['predictions']
-
-        # Check for a result
-        for (prediction, probability) in predictions:
-            logger.debug("prediction %s: %f", prediction, probability)
-
-            # The graph uses softmax in the final layer, so it's *unlikely* that this will be useful.
-            # That being said, it's possible to configure multiple triggers with low thresholds.
-            if prediction in self.triggers and probability >= self.triggers[prediction]:
+    def process_events(self, events, timestamp, image):
+        # Process all the triggers, and check if there's any changes.
+        for trigger in self.triggers:
+            if trigger in events:
                 # Prevent alarm storms by not acting on active triggers
-                if prediction not in self.active_triggers:
-                    logger.warning("Trigger event active: %s %f", prediction, probability)
-                    self.active_triggers.add(prediction)
+                if trigger not in self.active_triggers:
+                    logger.warning("Trigger event active: %s", trigger)
+                    self.active_triggers.add(trigger)
 
-                    trigger_event.send(self, prediction=prediction, probability=probability,
-                                       timestamp=data['timestamp'], image=data['image'])
+                    trigger_event.send(self, event=trigger, timestamp=timestamp, image=image)
             else:
                 # Log any clearing alarms
-                if prediction in self.active_triggers:
-                    logger.warning("Trigger event ended: %s %f", prediction, probability)
+                if trigger in self.active_triggers:
+                    logger.warning("Trigger event ended: %s", trigger)
 
-                self.active_triggers.discard(prediction)  # Remove from active triggers (if it exists)
+                self.active_triggers.discard(trigger)  # Remove from active triggers (if it exists)
+
+    def handle_image_analysis(self, sender, **data):
+        timestamp = data['timestamp']
+        image = data['image']
+        events = []
+
+        # Check for a CNN predictions data source
+        if 'predictions' in data:
+            # Get predictions
+            predictions = data['predictions']
+            events = [prediction for (prediction, probability) in predictions if probability >= self.triggers[prediction]]
+        elif 'caption' in data:
+            pass
+
+        self.process_events(events, timestamp, image)
+
+

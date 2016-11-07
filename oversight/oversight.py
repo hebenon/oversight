@@ -22,7 +22,7 @@ import logging.config
 
 import tensorflow as tf
 
-from cnn_classifier import CNNClassifier
+from im2txt_classifier import Im2TxtClassifier
 from image_source import ImageSource
 from image_buffer import ImageBuffer
 from smtp_notifier import SmtpNotifier
@@ -84,29 +84,28 @@ def main(_):
     LOGGING_CONFIG["loggers"]["root"]["level"] = args.log_level
     logging.config.dictConfig(LOGGING_CONFIG)
 
-    with tf.Session() as sess:
-        # Create notifiers
-        smtp_recipients = args.smtp_recipients.split(',')
-        smtp_notifier = SmtpNotifier('Oversight <noreply@oversight.io>', smtp_recipients, args.smtp_host)
+    # Create notifiers
+    smtp_recipients = args.smtp_recipients.split(',')
+    smtp_notifier = SmtpNotifier('Oversight <noreply@oversight.io>', smtp_recipients, args.smtp_host)
 
-        # Parse any triggers, and create monitor
-        triggers = parse_triggers(args.triggers)
-        logger.info('Triggers: ' + str(triggers))
-        monitor = Monitor(triggers)
+    # Parse any triggers, and create monitor
+    triggers = parse_triggers(args.triggers)
+    logger.info('Triggers: ' + str(triggers))
+    monitor = Monitor(triggers)
 
-        # Create classifiers
-        logger.info('Loading classifier...')
-        classifier = CNNClassifier(args.model_directory, sess)
+    # Create classifiers
+    logger.info('Loading im2txt classifier...')
+    classifier = Im2TxtClassifier(args.model_directory)
 
-        # Create image buffer
-        image_buffer = ImageBuffer(args.image_buffer_length)
+    # Create image buffer
+    image_buffer = ImageBuffer(args.image_buffer_length)
 
-        # Create image source
-        logger.info('Creating image source...')
-        image_source = ImageSource(args.download_url, args.download_username, args.download_password)
+    # Create image source
+    logger.info('Creating image source...')
+    image_source = ImageSource(args.download_url, args.download_username, args.download_password)
 
-        while True:
-            time.sleep(2)
+    while True:
+        time.sleep(2)
 
 if __name__ == '__main__':
     logger.info('Initialising Tensorflow...')
