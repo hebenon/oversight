@@ -34,7 +34,7 @@ def teardown():
         trigger_event.disconnect(receiver)
 
 @with_setup(teardown=teardown)
-def test_generate_event_if_over_threshold():
+def test_generate_event_from_prediction_if_over_threshold():
     monitor = Monitor(triggers={'test_event': 0.5})
 
     # Set up test conditions
@@ -56,7 +56,7 @@ def test_generate_event_if_over_threshold():
     assert generated_events[0] == expected
 
 @with_setup(teardown=teardown)
-def test_no_event_if_under_threshold():
+def test_no_event_from_prediction_if_under_threshold():
     monitor = Monitor(triggers={'test_event': 0.5})
 
     # Set up test conditions
@@ -130,3 +130,25 @@ def test_generate_event_once_active_cleared():
     assert len(generated_events) is 2
     assert generated_events[0] == expected_first
     assert generated_events[1] == expected_second
+
+@with_setup(teardown=teardown)
+def test_generate_event_from_caption():
+    monitor = Monitor(triggers={'test event': 0.5})
+
+    # Set up test conditions
+    now = datetime.utcnow()
+    image = load_image()
+    generated_events = []
+
+    def event_received(sender,**data):
+        generated_events.append(data)
+
+    trigger_event.connect(event_received)
+
+    image_analysis.send('test', timestamp=now, image=image, caption="a test event in front of a house")
+
+    # Verify result
+    expected = dict(timestamp=now, image=image, event='test event')
+
+    assert len(generated_events) is 1
+    assert generated_events[0] == expected

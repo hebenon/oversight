@@ -15,7 +15,9 @@
 __author__ = 'bcarson'
 
 import tensorflow as tf
+import logging
 import os
+import time
 
 from signals import image, image_analysis
 
@@ -23,6 +25,8 @@ from im2txt import configuration
 from im2txt import inference_wrapper
 from im2txt.inference_utils import caption_generator
 from im2txt.inference_utils import vocabulary
+
+logger = logging.getLogger('root')
 
 
 class Im2TxtClassifier(object):
@@ -56,9 +60,13 @@ class Im2TxtClassifier(object):
     def predict(self, sender, **data):
         image_data = data['image']
 
+        start = time.time()
+
         # Generate a caption for this image.
         caption = self.generator.beam_search(self.session, image_data)[0]
         sentence = " ".join([self.vocab.id_to_word(w) for w in caption.sentence[1:-1]])
+
+        logger.debug("im2txt prediction time: %s", str(time.time() - start))
 
         # Emit analysis results
         image_analysis.send(self, timestamp=data['timestamp'], image=image_data, caption=sentence)

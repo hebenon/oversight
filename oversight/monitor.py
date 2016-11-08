@@ -40,9 +40,12 @@ class Monitor(object):
         if 'predictions' in data:
             # Get predictions
             predictions = data['predictions']
+            logger.debug("Predictions received: %s" + str(predictions))
             events = [prediction for (prediction, probability) in predictions if probability >= self.triggers[prediction]]
         elif 'caption' in data:
-            pass
+            caption = data['caption']
+            logger.debug("Caption received: %s" % caption)
+            events = [trigger for trigger in self.triggers if trigger in caption]
 
         self.process_events(events, timestamp, image)
 
