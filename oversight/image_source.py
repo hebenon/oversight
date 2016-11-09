@@ -17,6 +17,8 @@ __author__ = 'bcarson'
 import requests
 import io
 import logging
+import random
+import time
 
 from datetime import datetime
 from threading import Timer
@@ -48,9 +50,10 @@ class ImageSource(object):
 
         self.download_frequency = download_frequency
 
-        Timer(self.download_frequency, self.get_image).start()
+        Timer(self.download_frequency * random.random(), self.get_image).start()
 
     def get_image(self):
+        start = time.time()
         downloaded_image = None
 
         try:
@@ -68,7 +71,8 @@ class ImageSource(object):
             resized_image = self.get_resized_image(downloaded_image)
             image.send(self, timestamp=datetime.utcnow(), image=resized_image)
 
-        Timer(self.download_frequency, self.get_image).start()
+        next_time = max(self.download_frequency - (time.time() - start), 0)
+        Timer(next_time, self.get_image).start()
 
     def get_resized_image(self, image_input):
         """
