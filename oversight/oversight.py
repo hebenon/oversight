@@ -46,6 +46,7 @@ def validate_args():
     parser.add_argument('--download_urls', default=os.environ.get('OVERSIGHT_DOWNLOAD_URLS', '').split(' '), nargs='*')
     parser.add_argument('--model_directory', default=os.environ.get('OVERSIGHT_MODEL_DIRECTORY', '~/.oversight'))
     parser.add_argument('--image_buffer_length', default=os.environ.get('OVERSIGHT_IMAGE_BUFFER_LENGTH', 3), type=int)
+    parser.add_argument('--notification_delay', default=os.environ.get('OVERSIGHT_NOTIFICATION_DELAY', 2), type=int)
     parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
     parser.add_argument('--smtp_host', default=os.environ.get('OVERSIGHT_SMTP_HOST', ''))
     parser.add_argument('--triggers', default=os.environ.get('OVERSIGHT_TRIGGERS', '').split(' '), nargs='*')
@@ -102,14 +103,14 @@ def main(_):
         # Parse any triggers, and create monitor
         triggers = parse_triggers(args.triggers)
         logger.info('Triggers: ' + str(triggers))
-        monitor = Monitor(triggers)
+        monitor = Monitor(triggers, args.notification_delay)
 
         # Create classifiers
         logger.info('Loading classifier...')
         classifier = CNNClassifier(args.model_directory, sess)
 
         # Create image buffer
-        image_buffer = ImageBuffer(args.image_buffer_length)
+        image_buffer = ImageBuffer(args.image_buffer_length * len(args.download_urls))
 
         # Create image source
         logger.info('Creating image sources...')
