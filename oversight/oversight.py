@@ -19,6 +19,7 @@ import os
 import time
 import logging
 import logging.config
+import urlparse
 
 import tensorflow as tf
 
@@ -42,9 +43,7 @@ def validate_args():
     :return: parsed ArgumentParser object
     """
     parser = argparse.ArgumentParser(description='oversight')
-    parser.add_argument('--download_url', default=os.environ.get('OVERSIGHT_DOWNLOAD_URL', None))
-    parser.add_argument('--download_username', default=os.environ.get('OVERSIGHT_DOWNLOAD_USERNAME', None))
-    parser.add_argument('--download_password', default=os.environ.get('OVERSIGHT_DOWNLOAD_PASSWORD', None))
+    parser.add_argument('--download_urls', default=os.environ.get('OVERSIGHT_DOWNLOAD_URLS', '').split(' '), nargs='*')
     parser.add_argument('--model_directory', default=os.environ.get('OVERSIGHT_MODEL_DIRECTORY', '~/.oversight'))
     parser.add_argument('--image_buffer_length', default=os.environ.get('OVERSIGHT_IMAGE_BUFFER_LENGTH', 3), type=int)
     parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
@@ -54,7 +53,7 @@ def validate_args():
     args = parser.parse_args()
 
     # Mandatory args
-    if not args.download_url:
+    if len(args.download_urls) < 1:
         exit(parser.print_usage())
 
     return args
@@ -75,6 +74,17 @@ def parse_triggers(trigger_args):
         triggers[trigger] = float(threshold)
 
     return triggers
+
+
+def create_image_sources(image_args):
+    image_sources = []
+    for image_url in image_args:
+        parsed = urlparse.urlparse(image_url)
+
+        plain_url = "%s://%s%s%s" % (parsed.scheme, parsed.hostname, ":%s" % parsed.port if parsed.port else "", parsed.path)
+        ImageSource(plain_url, parsed.username, parsed.password)
+
+    return image_sources
 
 
 def main(_):
@@ -102,8 +112,8 @@ def main(_):
         image_buffer = ImageBuffer(args.image_buffer_length)
 
         # Create image source
-        logger.info('Creating image source...')
-        image_source = ImageSource(args.download_url, args.download_username, args.download_password)
+        logger.info('Creating image sources...')
+        image_sources = create_image_sources(args.download_urls)
 
         while True:
             time.sleep(2)
