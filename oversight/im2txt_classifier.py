@@ -67,6 +67,7 @@ class Im2TxtClassifier(object):
         sentence = " ".join([self.vocab.id_to_word(w) for w in caption.sentence[1:-1]])
 
         logger.debug("im2txt prediction time: %s", str(time.time() - start))
+        logger.debug("Generated caption: %s (%s, %s)", sentence, str(caption.logprob), str(caption.score))
 
         # Emit analysis results
         image_analysis.send(self, timestamp=data['timestamp'], image=image_data, caption=sentence)

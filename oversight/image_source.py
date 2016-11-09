@@ -17,6 +17,7 @@ __author__ = 'bcarson'
 import requests
 import io
 import logging
+import random
 import time
 
 from datetime import datetime
@@ -49,7 +50,7 @@ class ImageSource(object):
 
         self.download_frequency = download_frequency
 
-        Timer(self.download_frequency, self.get_image).start()
+        Timer(self.download_frequency * random.random(), self.get_image).start()
 
     def get_image(self):
         start = time.time()
