@@ -69,7 +69,7 @@ class ImageSource(object):
 
         if downloaded_image is not None:
             resized_image = self.get_resized_image(downloaded_image)
-            image.send(self, timestamp=datetime.utcnow(), image=resized_image)
+            image.send(self, timestamp=datetime.utcnow(), image=resized_image, source=self.download_url)
 
         next_time = max(self.download_frequency - (time.time() - start), 0)
         Timer(next_time, self.get_image).start()

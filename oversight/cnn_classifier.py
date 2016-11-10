@@ -58,4 +58,4 @@ class CNNClassifier(object):
             results += [(self.labels[node_id], predictions[0][node_id])]
 
         # Emit analysis results
-        image_analysis.send(self, timestamp=data['timestamp'], image=image_data, predictions=results)
+        image_analysis.send(self, source=data['source'], timestamp=data['timestamp'], image=image_data, predictions=results)
