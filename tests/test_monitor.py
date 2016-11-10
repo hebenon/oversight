@@ -35,7 +35,7 @@ def teardown():
 
 @with_setup(teardown=teardown)
 def test_generate_event_if_over_threshold():
-    monitor = Monitor(triggers={'test_event': 0.5})
+    monitor = Monitor(triggers={'test_event': 0.5}, notification_delay=0)
 
     # Set up test conditions
     now = datetime.utcnow()
@@ -47,17 +47,17 @@ def test_generate_event_if_over_threshold():
 
     trigger_event.connect(event_received)
 
-    image_analysis.send('test', timestamp=now, image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send('test', source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
 
     # Verify result
-    expected = dict(timestamp=now, image=image, prediction='test_event', probability=0.99)
+    expected = dict(timestamp=now, source="test_source", image=image, prediction='test_event', probability=0.99)
 
     assert len(generated_events) is 1
     assert generated_events[0] == expected
 
 @with_setup(teardown=teardown)
 def test_no_event_if_under_threshold():
-    monitor = Monitor(triggers={'test_event': 0.5})
+    monitor = Monitor(triggers={'test_event': 0.5}, notification_delay=0)
 
     # Set up test conditions
     now = datetime.utcnow()
@@ -69,14 +69,14 @@ def test_no_event_if_under_threshold():
 
     trigger_event.connect(event_received)
 
-    image_analysis.send('test', timestamp=now, image=image, predictions=[('test_event', 0.4)])
+    image_analysis.send('test', source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.4)])
 
     # Verify result
     assert len(generated_events) is 0
 
 @with_setup(teardown=teardown)
 def test_no_event_if_already_active():
-    monitor = Monitor(triggers={'test_event': 0.5})
+    monitor = Monitor(triggers={'test_event': 0.5}, notification_delay=0)
 
     # Set up test conditions
     now = datetime.utcnow()
@@ -89,20 +89,20 @@ def test_no_event_if_already_active():
     trigger_event.connect(event_received)
 
     # Trigger once
-    image_analysis.send('test', timestamp=now, image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send('test', source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
 
     # Second prediction - should not generate
-    image_analysis.send('test', timestamp=now + timedelta(seconds=1), image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send('test', source="test_source", timestamp=now + timedelta(seconds=1), image=image, predictions=[('test_event', 0.99)])
 
     # Verify result
-    expected = dict(timestamp=now, image=image, prediction='test_event', probability=0.99)
+    expected = dict(timestamp=now, source="test_source", image=image, prediction='test_event', probability=0.99)
 
     assert len(generated_events) is 1
     assert generated_events[0] == expected
 
 @with_setup(teardown=teardown)
 def test_generate_event_once_active_cleared():
-    monitor = Monitor(triggers={'test_event': 0.5})
+    monitor = Monitor(triggers={'test_event': 0.5}, notification_delay=0)
 
     # Set up test conditions
     now = datetime.utcnow()
@@ -115,17 +115,17 @@ def test_generate_event_once_active_cleared():
     trigger_event.connect(event_received)
 
     # Trigger initial
-    image_analysis.send('test', timestamp=now, image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send('test', source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
 
     # Clear the first alarm.
-    image_analysis.send('test', timestamp=now + timedelta(seconds=1), image=image, predictions=[('test_event', 0.4)])
+    image_analysis.send('test', source="test_source", timestamp=now + timedelta(seconds=1), image=image, predictions=[('test_event', 0.4)])
 
     # Send the third event
-    image_analysis.send('test', timestamp=now + timedelta(seconds=2), image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send('test', source="test_source", timestamp=now + timedelta(seconds=2), image=image, predictions=[('test_event', 0.99)])
 
     # Verify result
-    expected_first = dict(timestamp=now, image=image, prediction='test_event', probability=0.99)
-    expected_second = dict(timestamp=now + timedelta(seconds=2), image=image, prediction='test_event', probability=0.99)
+    expected_first = dict(source="test_source", timestamp=now, image=image, prediction='test_event', probability=0.99)
+    expected_second = dict(source="test_source", timestamp=now + timedelta(seconds=2), image=image, prediction='test_event', probability=0.99)
 
     assert len(generated_events) is 2
     assert generated_events[0] == expected_first

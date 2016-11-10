@@ -47,7 +47,7 @@ def test_send_mail_to_recipients(mock_smtplib):
     now = datetime.utcnow()
     test_image = load_image()
 
-    trigger_event.send('test', prediction='test event', probability=0.95, timestamp=now, image=test_image)
+    trigger_event.send('test', prediction='test event', probability=0.95, source="test_source", timestamp=now, image=test_image)
 
     # Verify result
     assert mock_smtplib.return_value.sendmail.call_count == 1

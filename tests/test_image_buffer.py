@@ -49,7 +49,7 @@ def test_return_images_if_less_than_length():
     now = datetime.utcnow()
     test_image = load_image()
 
-    image.send('test', timestamp=now, image=test_image)
+    image.send('test', source="test_source", timestamp=now, image=test_image)
 
     result = get_image_buffer()
 
@@ -69,7 +69,7 @@ def test_return_buffer_length_images():
     for i in xrange(0, buffer_length + 1):
         test_image = load_image()
         test_images.append(test_image)
-        image.send('test', timestamp=now + timedelta(seconds=i), image=test_image)
+        image.send('test', source="test_source", timestamp=now + timedelta(seconds=i), image=test_image)
 
     result = get_image_buffer()
 
