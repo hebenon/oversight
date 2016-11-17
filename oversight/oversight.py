@@ -27,6 +27,7 @@ from cnn_classifier import CNNClassifier
 from image_source import ImageSource
 from image_buffer import ImageBuffer
 from smtp_notifier import SmtpNotifier
+from pushover_notifier import PushoverNotifier
 from monitor import Monitor
 
 from logging_config import LOGGING_CONFIG
@@ -49,6 +50,9 @@ def validate_args():
     parser.add_argument('--notification_delay', default=os.environ.get('OVERSIGHT_NOTIFICATION_DELAY', 2), type=int)
     parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
     parser.add_argument('--smtp_host', default=os.environ.get('OVERSIGHT_SMTP_HOST', ''))
+    parser.add_argument('--pushover_user', default=os.environ.get('OVERSIGHT_PUSHOVER_USER', ''))
+    parser.add_argument('--pushover_token', default=os.environ.get('OVERSIGHT_PUSHOVER_TOKEN', ''))
+    parser.add_argument('--pushover_device', default=os.environ.get('OVERSIGHT_PUSHOVER_DEVICE', ''))
     parser.add_argument('--triggers', default=os.environ.get('OVERSIGHT_TRIGGERS', '').split(' '), nargs='*')
     parser.add_argument('--log_level', default=os.environ.get('OVERSIGHT_LOG_LEVEL', 'INFO'))
     args = parser.parse_args()
@@ -82,7 +86,9 @@ def create_image_sources(image_args):
     for image_url in image_args:
         parsed = urlparse.urlparse(image_url)
 
-        plain_url = "%s://%s%s%s" % (parsed.scheme, parsed.hostname, ":%s" % parsed.port if parsed.port else "", parsed.path)
+        plain_url = "%s://%s%s%s" % (parsed.scheme,
+                                     parsed.hostname,
+                                     ":%s" % parsed.port if parsed.port else "", parsed.path)
         ImageSource(plain_url, parsed.username, parsed.password)
 
     return image_sources
@@ -97,8 +103,13 @@ def main(_):
 
     with tf.Session() as sess:
         # Create notifiers
+        notifiers = []
         smtp_recipients = args.smtp_recipients.split(',')
-        smtp_notifier = SmtpNotifier('Oversight <noreply@oversight.io>', smtp_recipients, args.smtp_host)
+        if len(smtp_recipients) > 0 and not args.smtp_host.isspace():
+            notifiers.append(SmtpNotifier('Oversight <noreply@oversight.io>', smtp_recipients, args.smtp_host))
+
+        if not args.pushover_user.isspace() and not args.pushover_token.isspace():
+            notifiers.append(PushoverNotifier(args.pushover_user, args.pushover_token))
 
         # Parse any triggers, and create monitor
         triggers = parse_triggers(args.triggers)
