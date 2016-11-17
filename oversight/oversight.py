@@ -86,7 +86,9 @@ def create_image_sources(image_args):
     for image_url in image_args:
         parsed = urlparse.urlparse(image_url)
 
-        plain_url = "%s://%s%s%s" % (parsed.scheme, parsed.hostname, ":%s" % parsed.port if parsed.port else "", parsed.path)
+        plain_url = "%s://%s%s%s" % (parsed.scheme,
+                                     parsed.hostname,
+                                     ":%s" % parsed.port if parsed.port else "", parsed.path)
         ImageSource(plain_url, parsed.username, parsed.password)
 
     return image_sources

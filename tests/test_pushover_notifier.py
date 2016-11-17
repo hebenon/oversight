@@ -42,7 +42,9 @@ def test_send_notification(mock_requests):
     pushover_token = 'test_token'
     pushover_device = 'test_device'
 
-    pushover_notifier_instance = PushoverNotifier(pushover_user=pushover_user, pushover_token=pushover_token, pushover_device=pushover_device)
+    pushover_notifier_instance = PushoverNotifier(pushover_user=pushover_user,
+                                                  pushover_token=pushover_token,
+                                                  pushover_device=pushover_device)
 
     # Set up test conditions
     now = datetime.utcnow()
