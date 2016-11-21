@@ -50,8 +50,9 @@ def test_send_notification(mock_requests):
     now = datetime.utcnow()
     test_image = load_image()
     test_prediction = 'test event'
+    test_source = 'test_source'
 
-    trigger_event.send('test', prediction=test_prediction, probability=0.95, timestamp=now, image=test_image)
+    trigger_event.send('test', prediction=test_prediction, probability=0.95, timestamp=now, image=test_image, source=test_source)
 
     # Verify result
     assert mock_requests.call_count == 1
@@ -59,3 +60,4 @@ def test_send_notification(mock_requests):
     assert mock_requests.call_args[1]['data']['token'] == pushover_token
     assert mock_requests.call_args[1]['data']['timestamp'] == calendar.timegm(now.timetuple())
     assert test_prediction in mock_requests.call_args[1]['data']['message']
+    assert test_source in mock_requests.call_args[1]['data']['message']

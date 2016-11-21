@@ -82,14 +82,20 @@ def parse_triggers(trigger_args):
 
 
 def create_image_sources(image_args):
+    """
+    Parses a list of name:url pairs to create a list of image sources.
+    :param image_args: list of name:url pairs that describe image sources.
+    :return: list of image sources
+    """
     image_sources = []
-    for image_url in image_args:
+    for image_source in image_args:
+        (tag, image_url) = image_source.split(":", 1)
         parsed = urlparse.urlparse(image_url)
 
         plain_url = "%s://%s%s%s" % (parsed.scheme,
                                      parsed.hostname,
                                      ":%s" % parsed.port if parsed.port else "", parsed.path)
-        ImageSource(plain_url, parsed.username, parsed.password)
+        ImageSource(plain_url, parsed.username, parsed.password, tag=tag)
 
     return image_sources
 
