@@ -36,13 +36,15 @@ class ImageSource(object):
     It periodically connects to a URL and downloads an image to generate each event.
     """
 
-    def __init__(self, download_url, username=None, password=None, download_frequency=2.0, output_width=1000, output_height=565):
+    def __init__(self, download_url, username=None, password=None, tag=None, download_frequency=2.0, output_width=1000, output_height=565):
         self.download_url = download_url
 
         if username is not None:
             self.authorisation = (username, password)
         else:
             self.authorisation = None
+
+        self.tag = tag
 
         # Size of images to work with
         self.output_width = output_width
@@ -69,7 +71,7 @@ class ImageSource(object):
 
         if downloaded_image is not None:
             resized_image = self.get_resized_image(downloaded_image)
-            image.send(self, timestamp=datetime.utcnow(), image=resized_image, source=self.download_url)
+            image.send(self, timestamp=datetime.utcnow(), image=resized_image, source=self.tag)
 
         next_time = max(self.download_frequency - (time.time() - start), 0)
         Timer(next_time, self.get_image).start()

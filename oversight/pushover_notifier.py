@@ -39,7 +39,7 @@ class PushoverNotifier(object):
         notification_data = {
             "user": self.pushover_user,
             "token": self.pushover_token,
-            "message": "Event: %s" % data['prediction'],
+            "message": "Camera %s, event: %s" % (data['source'], data['prediction']),
             "timestamp": calendar.timegm(data['timestamp'].timetuple())
         }
 
