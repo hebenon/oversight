@@ -80,17 +80,43 @@ Training produces some intermediary files, so it's suggested to create a data di
 ### Running Oversight
 Oversight doesn't use config files, but uses command line arguments and environment variables to control its configuration. This allows you to easily inject different configurations at runtime, according to your environment. Any variable supplied as a command line argument will overwrite an environment variable.
 
-| Command Line Argument |      Environment Variable     |                                                                                        Description                                                                                        | Example                                                             |
-| :---                  | :---                          | :---                                                                                                                                                                                      | :---                                                                |
-| download_urls         | OVERSIGHT_DOWNLOAD_URLS       | One or more pairs of tag:download-url pairs. The tag is the name of the camera, and the download-url is the url on the camera where you can retrieve a still jpeg image.                  | front:https://user:password@10.0.0.150/Streaming/channels/1/picture |
-| model_directory       | OVERSIGHT_MODEL_DIRECTORY     | Path to the directory where the pre-trained model is stored.                                                                                                                              | ~/.oversight                                                        |
-| image_buffer_length   | OVERSIGHT_IMAGE_BUFFER_LENGTH | How many images from each camera to store at a time. Images in the buffer will be sent with email notifications. Default is 3.                                                            | 5                                                                   |
-| notification_delay    | OVERSIGHT_NOTIFICATION_DELAY  | How long in seconds to wait after a trigger event before sending a notification. This allows the notification to include images before and after the trigger event. Default is 2 seconds. | 2                                                                   |
-| smtp_recipients       | OVERSIGHT_SMTP_RECIPIENTS     | A comma separated list of email addresses to receive email notifications when trigger events occur.                                                                                       | someone@somewhere.com,nobody@nowhere.com                            |                                       |
+#### Command Line Arguments
 
-#### With Docker:
+##### --download_urls, OVERSIGHT_DOWNLOAD_URLS \[TAG:DOWNLOAD_URL ...\]
+One or more pairs of tag:download-url pairs. The tag is the name of the camera, and the download-url is the url on the camera where you can retrieve a still jpeg image.
 
-#### Without Docker:
+E.g. --download_urls "front:https://user:password@10.0.0.150/Streaming/channels/1/picture side:https://user:password@10.0.0.151/Streaming/channels/1/picture"
+
+##### --model_directory, OVERSIGHT_MODEL_DIRECTORY \[MODEL_DIRECTORY\]
+Path to the directory where the pre-trained model is stored. Default is ~/.oversight
+
+E.g. --model_directory ~/.oversight
+
+##### --image_buffer_length, OVERSIGHT_IMAGE_BUFFER_LENGTH \[BUFFER_LENGTH\]
+How many images from each camera to store at a time. Images in the buffer will be sent with email notifications. Default is 3.
+
+E.g. --image_buffer-length 5
+
+##### --notification_delay, OVERSIGHT_NOTIFICATION_DELAY \[DELAY\]
+How long in seconds to wait after a trigger event before sending a notification. This allows the notification to include images before and after the trigger event. Default is 2 seconds.
+
+E.g. --notification_delay 2
+
+##### --smtp_recipients, OVERSIGHT_SMTP_RECIPIENTS \[RECIPIENTS ...\]
+A comma separated list of email addresses to receive email notifications when trigger events occur.
+
+E.g. --smtp_recipients someone@somewhere.com,another@another.com
+
+##### --smtp_server, OVERSIGHT_SMTP_SERVER \[SERVER\]
+The SMTP host to send email notifications through.
+
+E.g. --smtp_server mail.somewhere.com
+
+
+
+#### Running With Docker:
+
+#### Running Without Docker:
 
 ## The Future
 - A more general model that doesn't require individual training.
