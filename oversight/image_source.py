@@ -65,9 +65,9 @@ class ImageSource(object):
                 downloaded_image = io.BytesIO(request.content)
 
         except requests.ConnectionError, e:
-            logger.error("Connection Error:", e)
+            logger.error("Connection Error: %s", e)
         except requests.HTTPError, e:
-            logger.error("HTTP Error:", e)
+            logger.error("HTTP Error: %s", e)
 
         if downloaded_image is not None:
             resized_image = self.get_resized_image(downloaded_image)
