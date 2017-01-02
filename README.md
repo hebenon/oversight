@@ -112,7 +112,23 @@ The SMTP host to send email notifications through.
 
 E.g. --smtp_server mail.somewhere.com
 
+##### --pushover_user, OVERSIGHT_PUSHOVER_USER \[PUSHOVER_USER\]
+The Pushover API user to use when sending Pushover notifications.
 
+E.g. --pushover_user auh139ds2lkjxcjbcv73489351xc823
+
+##### --pushover_token, OVERSIGHT_PUSHOVER_TOKEN \[PUSHOVER_TOKEN\]
+The Pushover API token to use when sending Pushover notifications.
+
+E.g. --pushover_token cx952oiiuv24ccvx586sdklakjd7c6v346c8bc612lzxbe
+
+##### --triggers, OVERSIGHT_TRIGGERS \[TRIGGER:LEVEL ...\]
+Triggers are a set of trigger events and a level. The trigger events should correspond to the events that the Oversight model has been trained on. The level for each trigger is normalised from 0.0 to 1.0, and represents the probability of that event being a subject of an image captured from a camera. If it is highly unlikely that this event is in the image, the probability will be closer to 0.0. If it is highly likely, the probability will be closer to 1.0. The configured trigger level is the minimum threshold to activate this trigger. As an example, a trigger of 'person:0.80' has been configured. If an image has been analysed and the probability of the 'person' event is less than 0.80, the trigger will not fire. If the probability is greater than or equal to 0.80, it will fire.
+
+E.g. --triggers "person:0.80 car:0.90 unicorn:0.20"
+
+##### --log_level, OVERSIGHT_LOG_LEVEL \[LOG_LEVEL\]
+The level of logging to apply. Valid options (from most verbose to least verbose) are DEBUG, INFO, WARN, ERROR.
 
 #### Running With Docker:
 
