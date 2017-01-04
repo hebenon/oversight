@@ -128,11 +128,25 @@ Triggers are a set of trigger events and a level. The trigger events should corr
 E.g. --triggers "person:0.80 car:0.90 unicorn:0.20"
 
 ##### --log_level, OVERSIGHT_LOG_LEVEL \[LOG_LEVEL\]
-The level of logging to apply. Valid options (from most verbose to least verbose) are DEBUG, INFO, WARN, ERROR.
+The level of logging to apply. Valid options (from most verbose to least verbose) are DEBUG, INFO, WARNING, ERROR.
 
 #### Running With Docker:
+To run Oversight with Docker, you can override relevant environment options to configure it at runtime. In the example below, a data volume is connected that contains the pre-trained model.
+
+    sudo docker run \
+    --volumes-from oversight-data \
+    -e "OVERSIGHT_DOWNLOAD_URLS=side:http://user:password@192.168.0.1/Streaming/channels/1/picture front:http://user:password@192.168.0.2/Streaming/channels/1/picture" \
+    -e "OVERSIGHT_MODEL_DIRECTORY=/oversight_data" \
+    -e "OVERSIGHT_IMAGE_BUFFER_LENGTH=3" \
+    -e "OVERSIGHT_SMTP_RECIPIENTS=not_a_real_person@oversight.tech" \
+    -e "OVERSIGHT_SMTP_HOST=your.mailserver.com" \
+    -e "OVERSIGHT_TRIGGERS=car:0.85 person:0.90" \
+    --name oversight -d oversight
 
 #### Running Without Docker:
+Without docker, you can either override relevant environment variables, or supply the variables as command line options:
+
+    python oversight.py --download_urls "http://user:password@192.168.0.1/Streaming/channels/1/picture" --model_directory "~/.oversight" --smtp_recipients "not_a_real_person@oversight.tech" --smtp_server "your.mailserver.com"
 
 ## The Future
 - A more general model that doesn't require individual training.

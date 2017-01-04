@@ -106,7 +106,7 @@ def main(_):
         notifiers = []
         smtp_recipients = args.smtp_recipients.split(',')
         if len(smtp_recipients) > 0 and not args.smtp_host.isspace():
-            notifiers.append(SmtpNotifier('Oversight <noreply@oversight.io>', smtp_recipients, args.smtp_host))
+            notifiers.append(SmtpNotifier('Oversight <noreply@oversight.tech>', smtp_recipients, args.smtp_host))
 
         if not args.pushover_user.isspace() and not args.pushover_token.isspace():
             notifiers.append(PushoverNotifier(args.pushover_user, args.pushover_token))
