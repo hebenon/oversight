@@ -10,4 +10,4 @@ ADD bin /opt/oversight/bin
 
 RUN chmod +x /opt/oversight/bin/*
 
-CMD cd /opt/oversight/oversight && python oversight.py
+CMD cd /opt/oversight/oversight && python oversight_runner.py

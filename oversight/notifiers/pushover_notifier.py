@@ -19,7 +19,7 @@ import calendar
 
 import requests
 
-from signals import trigger_event, image_buffer
+from oversight.signals import trigger_event, image_buffer
 
 logger = logging.getLogger('root')
 
