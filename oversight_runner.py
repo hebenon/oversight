@@ -23,11 +23,11 @@ import urlparse
 import os
 import tensorflow as tf
 
-from cnn_classifier import CNNClassifier
-from image_buffer import ImageBuffer
-from image_source import ImageSource
-from logging_config import LOGGING_CONFIG
-from monitor import Monitor
+from oversight.cnn_classifier import CNNClassifier
+from oversight.image_buffer import ImageBuffer
+from oversight.image_source import ImageSource
+from oversight.logging_config import LOGGING_CONFIG
+from oversight.monitor import Monitor
 from oversight.notifiers.pushover_notifier import PushoverNotifier
 from oversight.notifiers.smtp_notifier import SmtpNotifier
 from oversight.notifiers.image_file_notifier import ImageFileNotifier
