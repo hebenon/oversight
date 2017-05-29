@@ -15,18 +15,15 @@
 __author__ = 'bcarson'
 
 import calendar
+from datetime import datetime
+
 import mock
-import requests
-
-from datetime import datetime, timedelta
-
 from blinker import ANY
 from nose.tools import with_setup
 
-from oversight.pushover_notifier import PushoverNotifier
+from oversight.notifiers.pushover_notifier import PushoverNotifier
 from oversight.signals import trigger_event
-
-from test_utils import load_image
+from tests.test_utils import load_image
 
 
 def teardown():

@@ -19,7 +19,7 @@ import smtplib
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 
-from signals import trigger_event, image_buffer
+from oversight.signals import trigger_event, image_buffer
 
 COMMASPACE = ', '
 

@@ -122,6 +122,11 @@ The Pushover API token to use when sending Pushover notifications.
 
 E.g. --pushover_token cx952oiiuv24ccvx586sdklakjd7c6v346c8bc612lzxbe
 
+##### --image_storage_directory, OVERSIGHT_IMAGE_STORAGE_DIRECTORY \[IMAGE_STORAGE_DIRECTORY\]
+Location to store captured images that trigger events. This will only capture an image when the event is first triggered, and won't capture subsequent frames while the trigger is active. Once the trigger is deactivated, a new trigger will capture another image. 
+
+E.g. --image_storage_directory ~/.oversight/captured_images
+
 ##### --triggers, OVERSIGHT_TRIGGERS \[TRIGGER:LEVEL ...\]
 Triggers are a set of trigger events and a level. The trigger events should correspond to the events that the Oversight model has been trained on. The level for each trigger is normalised from 0.0 to 1.0, and represents the probability of that event being a subject of an image captured from a camera. If it is highly unlikely that this event is in the image, the probability will be closer to 0.0. If it is highly likely, the probability will be closer to 1.0. The configured trigger level is the minimum threshold to activate this trigger. As an example, a trigger of 'person:0.80' has been configured. If an image has been analysed and the probability of the 'person' event is less than 0.80, the trigger will not fire. If the probability is greater than or equal to 0.80, it will fire.
 
@@ -146,7 +151,7 @@ To run Oversight with Docker, you can override relevant environment options to c
 #### Running Without Docker:
 Without docker, you can either override relevant environment variables, or supply the variables as command line options:
 
-    python oversight.py --download_urls "http://user:password@192.168.0.1/Streaming/channels/1/picture" --model_directory "~/.oversight" --smtp_recipients "not_a_real_person@oversight.tech" --smtp_server "your.mailserver.com"
+    python oversight_runner.py --download_urls "http://user:password@192.168.0.1/Streaming/channels/1/picture" --model_directory "~/.oversight" --smtp_recipients "not_a_real_person@oversight.tech" --smtp_server "your.mailserver.com"
 
 ## The Future
 - A more general model that doesn't require individual training.

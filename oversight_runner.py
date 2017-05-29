@@ -15,22 +15,22 @@
 __author__ = 'bcarson'
 
 import argparse
-import os
-import time
 import logging
 import logging.config
+import time
 import urlparse
 
+import os
 import tensorflow as tf
 
-from cnn_classifier import CNNClassifier
-from image_source import ImageSource
-from image_buffer import ImageBuffer
-from smtp_notifier import SmtpNotifier
-from pushover_notifier import PushoverNotifier
-from monitor import Monitor
-
-from logging_config import LOGGING_CONFIG
+from oversight.cnn_classifier import CNNClassifier
+from oversight.image_buffer import ImageBuffer
+from oversight.image_source import ImageSource
+from oversight.logging_config import LOGGING_CONFIG
+from oversight.monitor import Monitor
+from oversight.notifiers.pushover_notifier import PushoverNotifier
+from oversight.notifiers.smtp_notifier import SmtpNotifier
+from oversight.notifiers.image_file_notifier import ImageFileNotifier
 
 logger = logging.getLogger('root')
 
@@ -53,6 +53,7 @@ def validate_args():
     parser.add_argument('--pushover_user', default=os.environ.get('OVERSIGHT_PUSHOVER_USER', ''))
     parser.add_argument('--pushover_token', default=os.environ.get('OVERSIGHT_PUSHOVER_TOKEN', ''))
     parser.add_argument('--pushover_device', default=os.environ.get('OVERSIGHT_PUSHOVER_DEVICE', ''))
+    parser.add_argument('--image_storage_directory', default=os.environ.get('OVERSIGHT_IMAGE_STORAGE_DIRECTORY'))
     parser.add_argument('--triggers', default=os.environ.get('OVERSIGHT_TRIGGERS', '').split(' '), nargs='*')
     parser.add_argument('--log_level', default=os.environ.get('OVERSIGHT_LOG_LEVEL', 'INFO'))
     args = parser.parse_args()
@@ -111,11 +112,14 @@ def main(_):
         # Create notifiers
         notifiers = []
         smtp_recipients = args.smtp_recipients.split(',')
-        if len(smtp_recipients) > 0 and not args.smtp_host.isspace():
+        if len(smtp_recipients) > 0 and args.smtp_host:
             notifiers.append(SmtpNotifier('Oversight <noreply@oversight.tech>', smtp_recipients, args.smtp_host))
 
-        if not args.pushover_user.isspace() and not args.pushover_token.isspace():
+        if args.pushover_user and args.pushover_token:
             notifiers.append(PushoverNotifier(args.pushover_user, args.pushover_token))
+
+        if args.image_storage_directory:
+            notifiers.append(ImageFileNotifier(args.image_storage_directory))
 
         # Parse any triggers, and create monitor
         triggers = parse_triggers(args.triggers)

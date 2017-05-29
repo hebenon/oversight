@@ -14,18 +14,15 @@
 # ==============================================================================
 __author__ = 'bcarson'
 
+from datetime import datetime
+
 import mock
-import smtplib
-
-from datetime import datetime, timedelta
-
 from blinker import ANY
 from nose.tools import with_setup
 
-from oversight.smtp_notifier import SmtpNotifier
+from oversight.notifiers.smtp_notifier import SmtpNotifier
 from oversight.signals import trigger_event
-
-from test_utils import load_image
+from tests.test_utils import load_image
 
 
 def teardown():
