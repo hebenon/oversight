@@ -9,4 +9,4 @@ ADD . /opt/oversight/
 
 RUN chmod +x /opt/oversight/bin/*
 
-CMD cd /opt/oversight && python oversight/oversight_runner.py
+CMD cd /opt/oversight && python oversight_runner.py
