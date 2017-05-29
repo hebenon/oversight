@@ -146,7 +146,7 @@ To run Oversight with Docker, you can override relevant environment options to c
 #### Running Without Docker:
 Without docker, you can either override relevant environment variables, or supply the variables as command line options:
 
-    python oversight.py --download_urls "http://user:password@192.168.0.1/Streaming/channels/1/picture" --model_directory "~/.oversight" --smtp_recipients "not_a_real_person@oversight.tech" --smtp_server "your.mailserver.com"
+    python oversight_runner.py --download_urls "http://user:password@192.168.0.1/Streaming/channels/1/picture" --model_directory "~/.oversight" --smtp_recipients "not_a_real_person@oversight.tech" --smtp_server "your.mailserver.com"
 
 ## The Future
 - A more general model that doesn't require individual training.
