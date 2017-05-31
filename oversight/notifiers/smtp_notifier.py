@@ -14,6 +14,7 @@
 # ==============================================================================
 __author__ = 'bcarson'
 
+import logging
 import smtplib
 
 from email.mime.image import MIMEImage
@@ -23,13 +24,16 @@ from oversight.signals import trigger_event, image_buffer
 
 COMMASPACE = ', '
 
+logger = logging.getLogger('root')
+
 
 class SmtpNotifier(object):
     """
     A notification sink that sends notifications via smtp.
     """
-    def __init__(self, from_address, recipients, smtp_server, username=None, password=None):
+    def __init__(self, from_address, recipients, smtp_server, use_ssl=True, username=None, password=None):
         self.smtp_server = smtp_server
+        self.use_ssl = use_ssl
         self.username = username
         self.password = password
         self.from_address = from_address
@@ -60,9 +64,23 @@ class SmtpNotifier(object):
             msg.attach(img)
 
         # Send the email via our own SMTP server.
-        s = smtplib.SMTP_SSL(self.smtp_server)
-        s.sendmail(self.from_address, self.recipients, msg.as_string())
-        s.quit()
+        try:
+            s = smtplib.SMTP_SSL(self.smtp_server) if self.use_ssl else smtplib.SMTP(self.smtp_server)
+
+            # login if applicable
+            if self.username and self.password:
+                s.login(self.username, self.password)
+
+            s.sendmail(self.from_address, self.recipients, msg.as_string())
+            s.quit()
+        except smtplib.SMTPConnectError, ex:
+            logger.error("Error connecting to SMTP server: %s", ex)
+        except smtplib.SMTPHeloError, ex:
+            logger.error("Error connecting to SMTP server: %s", ex)
+        except smtplib.SMTPAuthenticationError, ex:
+            logger.error("SMTP server rejected credentials: %s", ex)
+        except smtplib.SMTPSenderRefused, ex:
+            logger.error("SMTP server rejected sender address %s", self.from_address)
 
     def get_image_buffer(self):
         image_set = []

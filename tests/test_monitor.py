@@ -33,6 +33,7 @@ def teardown():
     for receiver in trigger_event.receivers_for(ANY):
         trigger_event.disconnect(receiver)
 
+
 @with_setup(teardown=teardown)
 def test_generate_event_if_over_threshold():
     monitor = Monitor(triggers={'test_event': 0.5}, notification_delay=0)
@@ -42,18 +43,21 @@ def test_generate_event_if_over_threshold():
     image = load_image()
     generated_events = []
 
-    def event_received(sender,**data):
-        generated_events.append(data)
+    def event_received(sender, **data):
+        # Filter out other events, in case this suite is running in parallel
+        if sender is __name__:
+            generated_events.append(data)
 
     trigger_event.connect(event_received)
 
-    image_analysis.send('test', source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send(__name__, source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
 
     # Verify result
     expected = dict(timestamp=now, source="test_source", image=image, prediction='test_event', probability=0.99)
 
     assert len(generated_events) is 1
     assert generated_events[0] == expected
+
 
 @with_setup(teardown=teardown)
 def test_no_event_if_under_threshold():
@@ -64,15 +68,18 @@ def test_no_event_if_under_threshold():
     image = load_image()
     generated_events = []
 
-    def event_received(sender,**data):
-        generated_events.append(data)
+    def event_received(sender, **data):
+        # Filter out other events, in case this suite is running in parallel
+        if sender is __name__:
+            generated_events.append(data)
 
     trigger_event.connect(event_received)
 
-    image_analysis.send('test', source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.4)])
+    image_analysis.send(__name__, source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.4)])
 
     # Verify result
     assert len(generated_events) is 0
+
 
 @with_setup(teardown=teardown)
 def test_no_event_if_already_active():
@@ -83,13 +90,15 @@ def test_no_event_if_already_active():
     image = load_image()
     generated_events = []
 
-    def event_received(sender,**data):
-        generated_events.append(data)
+    def event_received(sender, **data):
+        # Filter out other events, in case this suite is running in parallel
+        if sender is __name__:
+            generated_events.append(data)
 
     trigger_event.connect(event_received)
 
     # Trigger once
-    image_analysis.send('test', source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send(__name__, source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
 
     # Second prediction - should not generate
     image_analysis.send('test', source="test_source", timestamp=now + timedelta(seconds=1), image=image, predictions=[('test_event', 0.99)])
@@ -100,6 +109,7 @@ def test_no_event_if_already_active():
     assert len(generated_events) is 1
     assert generated_events[0] == expected
 
+
 @with_setup(teardown=teardown)
 def test_generate_event_once_active_cleared():
     monitor = Monitor(triggers={'test_event': 0.5}, notification_delay=0)
@@ -109,19 +119,21 @@ def test_generate_event_once_active_cleared():
     image = load_image()
     generated_events = []
 
-    def event_received(sender,**data):
-        generated_events.append(data)
+    def event_received(sender, **data):
+        # Filter out other events, in case this suite is running in parallel
+        if sender is __name__:
+            generated_events.append(data)
 
     trigger_event.connect(event_received)
 
     # Trigger initial
-    image_analysis.send('test', source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send(__name__, source="test_source", timestamp=now, image=image, predictions=[('test_event', 0.99)])
 
     # Clear the first alarm.
-    image_analysis.send('test', source="test_source", timestamp=now + timedelta(seconds=1), image=image, predictions=[('test_event', 0.4)])
+    image_analysis.send(__name__, source="test_source", timestamp=now + timedelta(seconds=1), image=image, predictions=[('test_event', 0.4)])
 
     # Send the third event
-    image_analysis.send('test', source="test_source", timestamp=now + timedelta(seconds=2), image=image, predictions=[('test_event', 0.99)])
+    image_analysis.send(__name__, source="test_source", timestamp=now + timedelta(seconds=2), image=image, predictions=[('test_event', 0.99)])
 
     # Verify result
     expected_first = dict(source="test_source", timestamp=now, image=image, prediction='test_event', probability=0.99)

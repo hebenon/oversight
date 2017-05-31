@@ -50,6 +50,9 @@ def validate_args():
     parser.add_argument('--notification_delay', default=os.environ.get('OVERSIGHT_NOTIFICATION_DELAY', 2), type=int)
     parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
     parser.add_argument('--smtp_host', default=os.environ.get('OVERSIGHT_SMTP_HOST', ''))
+    parser.add_argument('--smtp_ssl', default=os.environ.get('OVERSIGHT_SMTP_SSL', True), type=bool)
+    parser.add_argument('--smtp_username', default=os.environ.get('OVERSIGHT_SMTP_USERNAME', ''))
+    parser.add_argument('--smtp_password', default=os.environ.get('OVERSIGHT_SMTP_PASSWORD', ''))
     parser.add_argument('--pushover_user', default=os.environ.get('OVERSIGHT_PUSHOVER_USER', ''))
     parser.add_argument('--pushover_token', default=os.environ.get('OVERSIGHT_PUSHOVER_TOKEN', ''))
     parser.add_argument('--pushover_device', default=os.environ.get('OVERSIGHT_PUSHOVER_DEVICE', ''))
@@ -113,7 +116,8 @@ def main(_):
         notifiers = []
         smtp_recipients = args.smtp_recipients.split(',')
         if len(smtp_recipients) > 0 and args.smtp_host:
-            notifiers.append(SmtpNotifier('Oversight <noreply@oversight.tech>', smtp_recipients, args.smtp_host))
+            notifiers.append(SmtpNotifier('Oversight <noreply@oversight.tech>', smtp_recipients, args.smtp_host,
+                                          username=args.smtp_username, password=args.smtp_password, use_ssl=args.smtp_ssl))
 
         if args.pushover_user and args.pushover_token:
             notifiers.append(PushoverNotifier(args.pushover_user, args.pushover_token))
