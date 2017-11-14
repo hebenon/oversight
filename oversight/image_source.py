@@ -57,6 +57,7 @@ class ImageSource(object):
     def get_image(self):
         start = time.time()
         downloaded_image = None
+        resized_image = None
 
         try:
             request = requests.get(self.download_url, auth=self.authorisation)
@@ -70,7 +71,12 @@ class ImageSource(object):
             logger.error("HTTP Error: %s", e)
 
         if downloaded_image is not None:
-            resized_image = self.get_resized_image(downloaded_image)
+            try:
+                resized_image = self.get_resized_image(downloaded_image)
+            except IOError, e:
+                logger.error("Failed to resize image: %s", e)
+
+        if resized_image is not None:
             image.send(self, timestamp=datetime.utcnow(), image=resized_image, source=self.tag)
 
         next_time = max(self.download_frequency - (time.time() - start), 0)
