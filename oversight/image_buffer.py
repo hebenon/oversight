@@ -1,6 +1,6 @@
 __author__ = 'bcarson'
 
-from signals import image, image_buffer
+from oversight.signals import image, image_buffer
 
 
 class ImageBuffer(object):

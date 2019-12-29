@@ -22,7 +22,7 @@ from nose.tools import with_setup
 from oversight.signals import image_analysis, trigger_event
 from oversight.monitor import Monitor
 
-from test_utils import load_image
+from tests.test_utils import load_image
 
 
 def teardown():

@@ -39,6 +39,6 @@ class ImageFileNotifier(object):
             file_handle = open(image_path, 'wb')
             file_handle.write(data['image'])
             file_handle.close()
-        except IOError, e:
+        except IOError as e:
             logger.error("IO Error: ", e)
 

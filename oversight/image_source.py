@@ -25,7 +25,7 @@ from threading import Timer
 
 from PIL import Image
 
-from signals import image
+from oversight.signals import image
 
 logger = logging.getLogger('root')
 
@@ -65,15 +65,15 @@ class ImageSource(object):
             if request.status_code is 200:
                 downloaded_image = io.BytesIO(request.content)
 
-        except requests.ConnectionError, e:
+        except requests.ConnectionError as e:
             logger.error("Connection Error: %s", e)
-        except requests.HTTPError, e:
+        except requests.HTTPError as e:
             logger.error("HTTP Error: %s", e)
 
         if downloaded_image is not None:
             try:
                 resized_image = self.get_resized_image(downloaded_image)
-            except IOError, e:
+            except IOError as e:
                 logger.error("Failed to resize image: %s", e)
 
         if resized_image is not None:

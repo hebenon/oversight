@@ -17,7 +17,7 @@ __author__ = 'bcarson'
 import tensorflow as tf
 import os
 
-from signals import image, image_analysis
+from oversight.signals import image, image_analysis
 
 
 class CNNClassifier(object):

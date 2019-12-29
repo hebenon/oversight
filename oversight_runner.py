@@ -18,7 +18,7 @@ import argparse
 import logging
 import logging.config
 import time
-import urlparse
+from urllib.parse import urlparse
 
 import os
 import tensorflow as tf

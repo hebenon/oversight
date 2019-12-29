@@ -52,9 +52,9 @@ class PushoverNotifier(object):
 
             if r.status_code != 200:
                 logger.error("Failed to send notification, (%d): %s" % (r.status_code, r.text))
-        except requests.ConnectionError, e:
+        except requests.ConnectionError as e:
             logger.error("Connection Error:", e)
-        except requests.HTTPError, e:
+        except requests.HTTPError as e:
             logger.error("HTTP Error:", e)
 
     def get_image_buffer(self):

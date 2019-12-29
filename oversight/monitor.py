@@ -4,7 +4,7 @@ import logging
 
 from threading import Timer
 
-from signals import image_analysis, trigger_event
+from oversight.signals import image_analysis, trigger_event
 
 logger = logging.getLogger('root')
 

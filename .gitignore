@@ -148,5 +148,11 @@ fabric.properties
 # .idea/misc.xml 
 # *.ipr
 
+# Visual Studio Code
+.vscode/
+
+# Nose tests
+.noseids
+
 ## Oversight specific files
 images

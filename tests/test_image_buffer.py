@@ -22,7 +22,7 @@ from nose.tools import with_setup
 from oversight.signals import image, image_buffer
 from oversight.image_buffer import ImageBuffer
 
-from test_utils import load_image
+from tests.test_utils import load_image
 
 
 def get_image_buffer():
@@ -66,7 +66,7 @@ def test_return_buffer_length_images():
     now = datetime.utcnow()
 
     test_images = []
-    for i in xrange(0, buffer_length + 1):
+    for i in range(0, buffer_length + 1):
         test_image = load_image()
         test_images.append(test_image)
         image.send('test', source="test_source", timestamp=now + timedelta(seconds=i), image=test_image)
@@ -77,5 +77,5 @@ def test_return_buffer_length_images():
     assert len(result) is buffer_length
 
     offset = len(test_images) - buffer_length
-    for i in xrange(0, len(result)):
+    for i in range(0, len(result)):
         assert result[i] == test_images[i + offset]
