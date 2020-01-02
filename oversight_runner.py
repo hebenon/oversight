@@ -24,6 +24,7 @@ import os
 import tensorflow as tf
 
 from oversight.cnn_classifier import CNNClassifier
+from oversight.object_detector import ObjectDetector
 from oversight.image_buffer import ImageBuffer
 from oversight.image_source import ImageSource
 from oversight.logging_config import LOGGING_CONFIG
@@ -46,6 +47,7 @@ def validate_args():
     parser = argparse.ArgumentParser(description='oversight')
     parser.add_argument('--download_urls', default=os.environ.get('OVERSIGHT_DOWNLOAD_URLS', '').split(' '), nargs='*')
     parser.add_argument('--model_directory', default=os.environ.get('OVERSIGHT_MODEL_DIRECTORY', '~/.oversight'))
+    parser.add_argument('--detector_module_handle', default=os.environ.get('OVERSIGHT_DETECTOR_MODULE_HANDLE', 'https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1'))
     parser.add_argument('--image_buffer_length', default=os.environ.get('OVERSIGHT_IMAGE_BUFFER_LENGTH', 3), type=int)
     parser.add_argument('--notification_delay', default=os.environ.get('OVERSIGHT_NOTIFICATION_DELAY', 2), type=int)
     parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
@@ -91,7 +93,7 @@ def create_image_sources(image_args):
     image_sources = []
     for image_source in image_args:
         (tag, image_url) = image_source.split(":", 1)
-        parsed = urlparse.urlparse(image_url)
+        parsed = urlparse(image_url)
 
         plain_url = "%s://%s%s%s" % (parsed.scheme,
                                      parsed.hostname,
@@ -101,45 +103,44 @@ def create_image_sources(image_args):
     return image_sources
 
 
-def main(_):
+def main():
     args = validate_args()
 
     # Configure logging
     LOGGING_CONFIG["loggers"]["root"]["level"] = args.log_level
     logging.config.dictConfig(LOGGING_CONFIG)
 
-    with tf.Session() as sess:
-        # Create notifiers
-        notifiers = []
-        smtp_recipients = args.smtp_recipients.split(',')
-        if len(smtp_recipients) > 0 and args.smtp_host:
-            notifiers.append(SmtpNotifier('Oversight <noreply@oversight.tech>', smtp_recipients, args.smtp_host))
+    # Create notifiers
+    notifiers = []
+    smtp_recipients = args.smtp_recipients.split(',')
+    if len(smtp_recipients) > 0 and args.smtp_host:
+        notifiers.append(SmtpNotifier('Oversight <noreply@oversight.tech>', smtp_recipients, args.smtp_host))
 
-        if args.pushover_user and args.pushover_token:
-            notifiers.append(PushoverNotifier(args.pushover_user, args.pushover_token))
+    if args.pushover_user and args.pushover_token:
+        notifiers.append(PushoverNotifier(args.pushover_user, args.pushover_token))
 
-        if args.image_storage_directory:
-            notifiers.append(ImageFileNotifier(args.image_storage_directory))
+    if args.image_storage_directory:
+        notifiers.append(ImageFileNotifier(args.image_storage_directory))
 
-        # Parse any triggers, and create monitor
-        triggers = parse_triggers(args.triggers)
-        logger.info('Triggers: ' + str(triggers))
-        monitor = Monitor(triggers, args.notification_delay)
+    # Parse any triggers, and create monitor
+    triggers = parse_triggers(args.triggers)
+    logger.info('Triggers: ' + str(triggers))
+    monitor = Monitor(triggers, args.notification_delay)
 
-        # Create classifiers
-        logger.info('Loading classifier...')
-        classifier = CNNClassifier(args.model_directory, sess)
+    # Create classifiers
+    logger.info('Loading classifier...')
+    #classifier = CNNClassifier(args.model_directory, sess)
+    classifier = ObjectDetector(args.detector_module_handle)
 
-        # Create image buffer
-        image_buffer = ImageBuffer(args.image_buffer_length * len(args.download_urls))
+    # Create image buffer
+    image_buffer = ImageBuffer(args.image_buffer_length * len(args.download_urls))
 
-        # Create image source
-        logger.info('Creating image sources...')
-        image_sources = create_image_sources(args.download_urls)
+    # Create image source
+    logger.info('Creating image sources...')
+    image_sources = create_image_sources(args.download_urls)
 
-        while True:
-            time.sleep(2)
+    while True:
+        time.sleep(2)
 
 if __name__ == '__main__':
-    logger.info('Initialising Tensorflow...')
-    tf.app.run()
+    main()
