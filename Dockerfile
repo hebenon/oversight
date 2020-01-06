@@ -1,11 +1,11 @@
-FROM tensorflow/tensorflow
+FROM pytorch/pytorch
 
 MAINTAINER Ben Carson "ben.carson@bigpond.com"
 
-# Version of Pillow in the container is O.L.D.
-RUN pip install --upgrade pillow blinker requests
-
 ADD . /opt/oversight/
+
+# Install requirements
+RUN pip install -r /opt/oversight/requirements.txt
 
 RUN chmod +x /opt/oversight/bin/*
 

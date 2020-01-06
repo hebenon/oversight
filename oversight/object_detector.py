@@ -14,13 +14,17 @@
 # ==============================================================================
 __author__ = 'bcarson'
 
-import tensorflow as tf
-import tensorflow_hub as hub
-
 import os
+import json
 import logging
 import time
 import threading
+import torch
+
+from io import BytesIO
+from PIL import Image
+
+from torchvision import transforms
 
 from oversight.signals import image, image_analysis
 
@@ -32,36 +36,49 @@ class ObjectDetector(object):
     """
 
     def __init__(self, module_handle):
-        #'https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1'
-        self.detector = hub.load(module_handle).signatures['default']
         self.lock = threading.Lock()
+
+        # Load model
+        self.model = torch.hub.load('pytorch/vision:v0.4.2', module_handle, pretrained=True)
+        self.model.eval()
+
+        # Load labels
+        with open("imagenet_class_index.json") as index_file:
+            class_index = json.load(index_file)
+            self.labels = [class_index[str(k)][1] for k in range(len(class_index))]
 
         image.connect(self.predict)
 
     def predict(self, sender, **data):
         image_data = data['image']
 
-        # Prepare image as a tensor
-        decoded_jpeg = tf.image.decode_jpeg(image_data)
-        converted_img  = tf.image.convert_image_dtype(decoded_jpeg, tf.float32)[tf.newaxis, ...]
+        # Prepare image
+        preprocess = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+        input_tensor = preprocess(Image.open(BytesIO(image_data)))
+        input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the model
 
-        # Run the tensor through the detector
-        with self.lock:
-            start_time = time.time()
-            result = self.detector(converted_img)
-            end_time = time.time()
+        # Run the image through the model
+        if torch.cuda.is_available():
+            input_batch = input_batch.to('cuda')
+            self.model.to('cuda')
 
-        result = {key:value.numpy() for key,value in result.items()}
+        with torch.no_grad():
+            output = self.model(input_batch)
 
-        logger.info("Found %d objects.", len(result["detection_scores"]))
-        logger.info("Inference time: %d", end_time-start_time)
- 
-        results = []
-       
-        for i in range(min(20, len(result["detection_scores"]))):
-            #logger.debug(str(result["detection_class_entities"][i]) + ": " + str(result["detection_scores"][i]))
-            results += [(str(result["detection_class_entities"][i]), result["detection_scores"][i])]
-            logger.info("%s: %2f", str(result["detection_class_entities"][i]), result["detection_scores"][i])    
+        # Process results
+        probabilities = torch.nn.functional.softmax(output[0], dim=0)
+        _, top_indices = torch.sort(output, descending=True)
+        
+        #logger.info("Found %d objects.", len(top_indices))
+        #logger.info("Inference time: %d", end_time-start_time)
+
+        results = [(str(self.labels[index]), output[0][index].item()) for index in top_indices[0][:20]]
+        logger.info(results)
 
         # Emit analysis results
         image_analysis.send(self, source=data['source'], timestamp=data['timestamp'], image=image_data, predictions=results)

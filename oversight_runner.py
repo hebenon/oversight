@@ -21,9 +21,7 @@ import time
 from urllib.parse import urlparse
 
 import os
-import tensorflow as tf
 
-from oversight.cnn_classifier import CNNClassifier
 from oversight.object_detector import ObjectDetector
 from oversight.image_buffer import ImageBuffer
 from oversight.image_source import ImageSource
@@ -47,7 +45,7 @@ def validate_args():
     parser = argparse.ArgumentParser(description='oversight')
     parser.add_argument('--download_urls', default=os.environ.get('OVERSIGHT_DOWNLOAD_URLS', '').split(' '), nargs='*')
     parser.add_argument('--model_directory', default=os.environ.get('OVERSIGHT_MODEL_DIRECTORY', '~/.oversight'))
-    parser.add_argument('--detector_module_handle', default=os.environ.get('OVERSIGHT_DETECTOR_MODULE_HANDLE', 'https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1'))
+    parser.add_argument('--detector_module_handle', default=os.environ.get('OVERSIGHT_DETECTOR_MODULE_HANDLE', 'mobilenet_v2'))
     parser.add_argument('--image_buffer_length', default=os.environ.get('OVERSIGHT_IMAGE_BUFFER_LENGTH', 3), type=int)
     parser.add_argument('--notification_delay', default=os.environ.get('OVERSIGHT_NOTIFICATION_DELAY', 2), type=int)
     parser.add_argument('--smtp_recipients', default=os.environ.get('OVERSIGHT_SMTP_RECIPIENTS', ''), nargs='*')
